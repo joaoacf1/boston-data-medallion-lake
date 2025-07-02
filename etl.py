@@ -65,3 +65,25 @@ def upload_to_s3_parquet(dfs: Dict[str, pd.DataFrame], bucket: str, prefix: str 
             Body=buffer.getvalue()
         )
         logging.info(f"✓ Upload to S3: {prefix}/data_{year}.parquet")
+
+def main():
+
+    required_env = ['AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'REGION_NAME']
+    
+    if not all(os.getenv(var) for var in required_env):
+        raise EnvironmentError("AWS environment variables not set correctly.")
+
+    boto3.setup_default_session(
+        aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
+        aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'),
+        region_name=os.getenv('REGION_NAME')
+    )
+
+    file_paths = {
+        year: extract_and_save_csv(year, url)
+        for year, url in DATASETS.items()
+    }
+
+    dfs = read_csvs_to_dict(file_paths)
+
+    upload_to_s3_parquet(dfs, bucket="boston-data-lake")
