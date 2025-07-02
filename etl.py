@@ -1,7 +1,9 @@
 import os
 import logging
 import requests
+import pandas as pd
 from dotenv import load_dotenv
+from typing import Dict
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -34,3 +36,14 @@ def extract_and_save_csv(year: str, url: str, output_dir: str = DATA_DIR) -> str
     except requests.RequestException as e:
         logging.error(f"Failed {url}: {e}")
         return ""
+
+
+def read_csvs_to_dict(file_paths: Dict[str, str]) -> Dict[str, pd.DataFrame]:
+
+    dfs = {}
+    for year, path in file_paths.items():
+        try:
+            dfs[year] = pd.read_csv(path, low_memory=False)
+        except Exception as e:
+            logging.error(f"Failed {path}: {e}")
+    return dfs
