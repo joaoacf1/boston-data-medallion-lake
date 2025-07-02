@@ -1,5 +1,6 @@
 import os
 import logging
+import requests
 from dotenv import load_dotenv
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -19,3 +20,17 @@ DATASETS = {
     "2021": "https://data.boston.gov/dataset/8048697b-ad64-4bfc-b090-ee00169f2323/resource/f53ebccd-bc61-49f9-83db-625f209c95f5/download/tmp88p9g82n.csv",
     "2020": "https://data.boston.gov/dataset/8048697b-ad64-4bfc-b090-ee00169f2323/resource/6ff6a6fd-3141-4440-a880-6f60a37fe789/download/tmpcv_10m2s.csv",
 }
+
+def extract_and_save_csv(year: str, url: str, output_dir: str = DATA_DIR) -> str:
+
+    file_path = os.path.join(output_dir, f"data_{year}.csv")
+    try:
+        response = requests.get(url, headers=HEADERS)
+        response.raise_for_status()
+        with open(file_path, 'wb') as f:
+            f.write(response.content)
+        logging.info(f"✓: {file_path}")
+        return file_path
+    except requests.RequestException as e:
+        logging.error(f"Failed {url}: {e}")
+        return ""
