@@ -87,3 +87,6 @@ def main():
     dfs = read_csvs_to_dict(file_paths)
 
     upload_to_s3_parquet(dfs, bucket="boston-data-lake")
+    
+if __name__ == "__main__":
+    main()
