@@ -2,8 +2,10 @@ import os
 import logging
 import requests
 import pandas as pd
+import boto3
 from dotenv import load_dotenv
 from typing import Dict
+from io import BytesIO
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -47,3 +49,19 @@ def read_csvs_to_dict(file_paths: Dict[str, str]) -> Dict[str, pd.DataFrame]:
         except Exception as e:
             logging.error(f"Failed {path}: {e}")
     return dfs
+
+
+def upload_to_s3_parquet(dfs: Dict[str, pd.DataFrame], bucket: str, prefix: str = "bronze"):
+
+    s3 = boto3.client('s3')
+    
+    for year, df in dfs.items():
+        buffer = BytesIO()
+        df.to_parquet(buffer, index=False)
+        
+        s3.put_object(
+            Bucket=bucket,
+            Key=f"{prefix}/data_{year}.parquet",
+            Body=buffer.getvalue()
+        )
+        logging.info(f"✓ Upload to S3: {prefix}/data_{year}.parquet")
