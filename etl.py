@@ -56,6 +56,8 @@ def upload_to_s3_parquet(dfs: Dict[str, pd.DataFrame], bucket: str, prefix: str 
     s3 = boto3.client('s3')
     
     for year, df in dfs.items():
+        if 'submitted_photo' in df.columns:
+            df['submitted_photo'] = df['submitted_photo'].astype(str)
         buffer = BytesIO()
         df.to_parquet(buffer, index=False)
         
